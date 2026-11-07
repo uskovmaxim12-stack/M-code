@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>М-КОД</title>
+    <style>
+        :root {
+            --bg-color: #090d16;
+            --panel-bg: #111726;
+            --accent-blue: #00d2ff;
+            --border-color: #1e293b;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+        }
+
+        .field-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent-blue);
+        }
+
+        .file-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: border-color 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .file-zone:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .file-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.4);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .btn-detach {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: "Courier New", monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        button.main-btn {
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s;
+            color: #ffffff;
+        }
+
+        button.main-btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-encode { background-color: #2563eb; }
+        .btn-decode { background-color: #4b5563; }
+
+        .btn-secondary {
+            background: #1e293b;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .output-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 480px) {
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="field-group">
+        <div class="field-header">
+            <label>Входные данные</label>
+        </div>
+        
+        <div class="file-zone" onclick="document.getElementById('fileInput').click()">
+            Нажмите для выбора файла (документы, фото, видео)
+            <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(this)">
+        </div>
+
+        <div id="fileInfoPanel" style="display:none" class="file-info-row">
+            <span id="fileNameDisplay"></span>
+            <button class="btn-detach" onclick="detachFile()">Открепить</button>
+        </div>
+
+        <textarea id="inputText" placeholder="Или введите текст для кодирования/зашифрованный код для декодирования..."></textarea>
+    </div>
+
+    <div class="actions-grid">
+        <button class="main-btn btn-encode" onclick="process(true)">Кодировать</button>
+        <button class="main-btn btn-decode" onclick="process(false)">Декодировать</button>
+    </div>
+
+    <div class="field-group">
+        <div class="field-header">
+            <label>Результат</label>
+        </div>
+        <textarea id="outputText" readonly placeholder="Здесь появится готовый результат..."></textarea>
+        
+        <div class="output-actions">
+            <button class="btn-secondary" id="copyBtn" onclick="copyText()">Копировать</button>
+            <button class="btn-secondary" id="downloadBtn" style="display:none" onclick="downloadFile()">Скачать как файл</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#_~|;';
+    let selectedFileBytes = null;
+    let selectedFileName = '';
+    let decodedBlob = null;
+    let decodedName = '';
+
+    // Фиксированная встроенная матрица (Константа инициализации)
+    const STATIC_KEY = [109, 99, 111, 100, 101, 95, 115, 101, 99, 114, 101, 116, 95, 50, 48, 50, 54];
+
+    class CodeStream {
+        constructor() {
+            this.s = new Array(256);
+            for (let i = 0; i < 256; i++) this.s[i] = i;
+            let j = 0;
+            for (let i = 0; i < 256; i++) {
+                j = (j + this.s[i] + STATIC_KEY[i % STATIC_KEY.length]) % 256;
+                let t = this.s[i]; this.s[i] = this.s[j]; this.s[j] = t;
+            }
+            this.i = 0;
+            this.j = 0;
+        }
+        next() {
+            this.i = (this.i + 1) % 256;
+            this.j = (this.j + this.s[this.i]) % 256;
+            let t = this.s[this.i]; this.s[this.i] = this.s[this.j]; this.s[this.j] = t;
+            return this.s[(this.s[this.i] + this.s[this.j]) % 256];
+        }
+    }
+
+    function handleFileSelect(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        selectedFileName = file.name;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            selectedFileBytes = new Uint8Array(e.target.result);
+            document.getElementById('fileNameDisplay').innerText = `Файл: ${selectedFileName}`;
+            document.getElementById('fileInfoPanel').style.display = 'flex';
+            document.getElementById('inputText').style.display = 'none';
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function detachFile() {
+        selectedFileBytes = null;
+        selectedFileName = '';
+        document.getElementById('fileInput').value = '';
+        document.getElementById('fileInfoPanel').style.display = 'none';
+        document.getElementById('inputText').style.display = 'block';
+    }
+
+    function process(isEncode) {
+        document.getElementById('downloadBtn').style.display = 'none';
+        decodedBlob = null;
+        
+        if (isEncode) {
+            let srcBytes;
+            if (selectedFileBytes) {
+                // Упаковка метаданных файла: [1][4 байта длина имени][имя][тело]
+                let nameBytes = new TextEncoder().encode(selectedFileName);
+                let totalLen = 1 + 4 + nameBytes.length + selectedFileBytes.length;
+                srcBytes = new Uint8Array(totalLen);
+                srcBytes[0] = 2; // маркер файла
+                
+                let nLen = nameBytes.length;
+                srcBytes[1] = (nLen >> 24) & 0xFF;
+                srcBytes[2] = (nLen >> 16) & 0xFF;
+                srcBytes[3] = (nLen >> 8) & 0xFF;
+                srcBytes[4] = nLen & 0xFF;
+                
+                srcBytes.set(nameBytes, 5);
+                srcBytes.set(selectedFileBytes, 5 + nLen);
+            } else {
+                let txt = document.getElementById('inputText').value;
+                if (!txt) { alert('Введите текст или выберите файл'); return; }
+                let txtBytes = new TextEncoder().encode(txt);
+                srcBytes = new Uint8Array(1 + txtBytes.length);
+                srcBytes[0] = 1; // маркер текста
+                srcBytes.set(txtBytes, 1);
+            }
+
+            let stream = new CodeStream();
+            let outStr = '';
+            for (let i = 0; i < srcBytes.length; i++) {
+                let k = stream.next();
+                let cipher = srcBytes[i] ^ k;
+                
+                let shift = stream.next() % 85;
+                let d1 = Math.floor(cipher / 85);
+                let d2 = cipher % 85;
+                
+                d1 = (d1 + shift) % 85;
+                d2 = (d2 + (shift * 3)) % 85;
+                
+                outStr += ALPHABET[d1] + ALPHABET[d2];
+            }
+            document.getElementById('outputText').value = outStr;
+            if (selectedFileBytes) {
+                document.getElementById('downloadBtn').innerText = 'Скачать как .mcode';
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+            }
+        } else {
+            let code = document.getElementById('outputText').value.trim();
+            if (!code) {
+                code = document.getElementById('inputText').value.trim();
+            }
+            if (!code || code.length % 2 !== 0) { alert('Неверный формат кода'); return; }
+            
+            let stream = new CodeStream();
+            let decrypted = new Uint8Array(code.length / 2);
+            
+            for (let i = 0; i < code.length; i += 2) {
+                let k = stream.next();
+                let shift = stream.next() % 85;
+                
+                let d1 = ALPHABET.indexOf(code[i]);
+                let d2 = ALPHABET.indexOf(code[i+1]);
+                if (d1 === -1 || d2 === -1) { alert('Обнаружены недопустимые символы'); return; }
+                
+                d1 = (d1 - shift + 85) % 85;
+                d2 = (d2 - (shift * 3) % 85 + 85) % 85;
+                
+                let cipher = d1 * 85 + d2;
+                decrypted[i/2] = cipher ^ k;
+            }
+
+            if (decrypted[0] === 1) {
+                let txtBytes = decrypted.subarray(1);
+                document.getElementById('outputText').value = new TextDecoder().decode(txtBytes);
+            } else if (decrypted[0] === 2) {
+                let nLen = (decrypted[1] << 24) | (decrypted[2] << 16) | (decrypted[3] << 8) | decrypted[4];
+                let nameBytes = decrypted.subarray(5, 5 + nLen);
+                decodedName = new TextDecoder().decode(nameBytes);
+                let fileBytes = decrypted.subarray(5 + nLen);
+                
+                decodedBlob = new Blob([fileBytes], {type: 'application/octet-stream'});
+                document.getElementById('outputText').value = `[ФАЙЛ УСПЕШНО ДЕКОДИРОВАН]
+
+Имя: ${decodedName}
+Размер: ${fileBytes.length} байт.
+
+Нажмите кнопку ниже для сохранения на устройство.`;
+                document.getElementById('downloadBtn').innerText = 'Сохранить файл';
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+            } else {
+                alert('Не удалось определить формат данных. Возможно, код поврежден.');
+            }
+        }
+    }
+
+    function copyText() {
+        const txt = document.getElementById('outputText').value;
+        if (!txt) return;
+        
+        const area = document.createElement('textarea');
+        area.value = txt;
+        document.body.appendChild(area);
+        area.select();
+        try {
+            document.execCommand('copy');
+            const btn = document.getElementById('copyBtn');
+            btn.innerText = 'Скопировано!';
+            setTimeout(() => { btn.innerText = 'Копировать'; }, 2000);
+        } catch (err) {
+            alert('Не удалось скопировать');
+        }
+        document.body.removeChild(area);
+    }
+
+    function downloadFile() {
+        let url, name;
+        if (decodedBlob) {
+            url = URL.createObjectURL(decodedBlob);
+            name = decodedName;
+        } else {
+            let code = document.getElementById('outputText').value;
+            let blob = new Blob([code], {type: 'text/plain'});
+            url = URL.createObjectURL(blob);
+            name = selectedFileName ? selectedFileName + '.mcode' : 'data.mcode';
+        }
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+</script>
+
+</body>
+</html>
